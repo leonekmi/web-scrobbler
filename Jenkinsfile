@@ -1,10 +1,15 @@
 pipeline {
-  agent any
+  agent {
+    node {
+      label 'master'
+    }
+
+  }
   stages {
     stage('gulp') {
       agent {
         node {
-          label '10.0.0'
+          label 'master'
         }
 
       }
