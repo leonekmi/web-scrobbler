@@ -14,9 +14,8 @@ pipeline {
 
       }
       steps {
-        sh '''npm install --no-save gulp-cli
-npm install
-gulp'''
+        sh '''npm install
+./node_modules/.bin/gulp'''
       }
     }
   }
