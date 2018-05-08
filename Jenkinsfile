@@ -14,7 +14,7 @@ pipeline {
 
       }
       steps {
-        sh '''npm install -g gulp-cli
+        sh '''npm install --no-save gulp-cli
 npm install
 gulp'''
       }
