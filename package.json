@@ -1,10 +1,13 @@
 {
   "name": "web-scrobbler",
-  "version": "0.0.1",
+  "version": "0.0.10",
   "description": "Automatically tracks your episode progress on Kitsu when you stream anime from your browser.",
   "main": "none",
   "scripts": {
-    "test": "return true;"
+    "build": "scripty",
+    "clean": "scripty",
+    "clean:builds": "scripty",
+    "copydevel": "scripty"
   },
   "repository": {
     "type": "git",
@@ -24,6 +27,7 @@
     "clipboard": "^2.0.0",
     "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
+    "kitsu": "^5.1.0",
     "moment": "^2.22.1",
     "semantic-ui-progress": "^2.3.1",
     "vue": "^2.5.16"
@@ -33,8 +37,11 @@
     "gulp-clean": "^0.4.0",
     "gulp-clean-css": "^3.9.3",
     "gulp-crx-pack": "^1.0.2",
+    "gulp-eslint": "^4.0.2",
     "gulp-htmlmin": "^4.0.0",
     "gulp-minify": "^2.1.0",
-    "gulp-zip": "^4.1.0"
+    "gulp-zip": "^4.1.0",
+    "scripty": "^1.7.2",
+    "vinyl-fs": "^3.0.2"
   }
 }

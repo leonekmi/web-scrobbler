@@ -16,8 +16,8 @@ Main runtime
     You should have received a copy of the GNU General Public License
     along with Kitsu Web Scrobbler.  If not, see <http://www.gnu.org/licenses/>.
 */
+/* exported scrobbling, mainTimer*/
 var scrobbling = {error: null, origin: null, chooseData: []};
-var error;
 var mainTimer;
 // Reset runtime
 chrome.browserAction.setBadgeText({text: ''});
@@ -35,20 +35,19 @@ getCredentials().then(function(result) {
         };
 
     fetch(url, options).then(function(data) {
-        data.json().then(function(jsondata) {
-            if (jsondata.meta.count === 0) {
-                chrome.notifications.create('kitsuBadToken', {
-                    type: 'basic',
-                    iconUrl: '../img/logo230.png',
-                    title: chrome.i18n.getMessage('badTokenNotificationTitle'),
-                    message: chrome.i18n.getMessage('badTokenNotificationMessage')
-                });
-        
-                scrobbling.error = 'exptoken';
-            }
-        });  
+        if (!data.ok) {
+            chrome.notifications.create('kitsuBadToken', {
+                type: 'basic',
+                iconUrl: '../img/logo230.png',
+                title: chrome.i18n.getMessage('badTokenNotificationTitle'),
+                message: chrome.i18n.getMessage('badTokenNotificationMessage')
+            });
+    
+            scrobbling.error = 'exptoken';
+        }
     });
 }).catch(function(reason) {
+    console.warn('No account', reason);
     chrome.notifications.create('kitsuLogin', {
         type: 'basic',
         iconUrl: '../img/logo230.png',
@@ -68,7 +67,7 @@ chrome.notifications.onClicked.addListener(function(notificationId) {
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (scrobbling.origin == tabId && typeof mainTimer == 'object') {
         if (typeof changeInfo.url == 'string') {
-            console.log({tabId: tabId, timer: mainTimer, event: 'tab changed url'});
+            console.log({tabId: tabId, timer: mainTimer, event: 'tab changed url', tab: tab});
             mainTimer.pause();
             mainTimer = undefined;
             scrobbling = {error: null, origin: null, chooseData: []};
@@ -88,7 +87,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 });
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
     if (scrobbling.origin == tabId && typeof mainTimer == 'object') {
-        console.log({tabId: tabId, timer: mainTimer, event: 'tab closed'});
+        console.log({tabId: tabId, timer: mainTimer, event: 'tab closed', removeInfo: removeInfo});
         mainTimer.pause();
         mainTimer = undefined;
         chrome.browserAction.setBadgeText({text: ''});
@@ -152,7 +151,8 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                 }
             });
         }).catch(function(reason) {
-            error = [true, reason];
+            scrobbling.error = 'neterr';
+            scrobbling.trace = reason;
         });
     } else if (message.action == 'setScrobbling') {
         console.log(message);
@@ -173,7 +173,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             getFeed(scrobbling.animeData.id, scrobbling.episode).then(function(data) {
                 scrobbling.discussdata = data;
                 sendResponse(true);
-            }); 
+            });
         });
     } else if (message.action == 'getScrobbling') {
         sendResponse(scrobbling);
@@ -181,6 +181,11 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         scrobbleAnime(scrobbling.animeData.id, scrobbling.episode);
         scrobbling.notice = chrome.i18n.getMessage('scrobbled');
         sendResponse(true);
+    } else if (message.action == 'refreshFeed') {
+        getFeed(scrobbling.animeData.id, scrobbling.episode).then(function(data) {
+            scrobbling.discussdata = data;
+            sendResponse(true);
+        });
     } else {
         console.error('Unknown runtime message', message);
         sendResponse(false);

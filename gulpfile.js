@@ -5,7 +5,9 @@ var gulp = require('gulp'),
     zip = require('gulp-zip'),
     crx = require('gulp-crx-pack'),
     clean = require('gulp-clean'),
-    moment = require('moment');
+    eslint = require('gulp-eslint'),
+    moment = require('moment'),
+    vfs = require('vinyl-fs');
 
 // clean build folder
 gulp.task('clean', () => {
@@ -25,21 +27,28 @@ gulp.task('copy', () => {
         .pipe(gulp.dest('build/img'));
     gulp.src('src/_locales/**')
         .pipe(gulp.dest('build/_locales'));
-    gulp.src(['./node_modules/vue/**/*',
-        './node_modules/clipboard/**/*',
-        './node_modules/jquery/**/*',
-        './node_modules/moment/**/*',
-        './node_modules/semantic-ui-progress/**/*',
-        './node_modules/font-awesome/**/*'], {base: './'})
-        .pipe(gulp.dest('./build/'));
-    return gulp.src('src/manifest.json')
+    gulp.src('src/manifest.json')
         .pipe(gulp.dest('build'));
+    return gulp.src(['./node_modules/vue/**/*',
+    './node_modules/clipboard/**/*',
+    './node_modules/jquery/**/*',
+    './node_modules/moment/**/*',
+    './node_modules/semantic-ui-progress/**/*',
+    './node_modules/font-awesome/**/*',
+    './node_modules/kitsu/**/*'], {base: './'})
+        .pipe(gulp.dest('./build/'));
 });
 
 // Init workspace -- loading unpacked without this will make the extension crash
 gulp.task('copy-devel', () => {
-    return gulp.src('node_modules/**')
-        .pipe(gulp.dest('src/node_modules'));
+    return gulp.src(['./node_modules/vue/**/*',
+    './node_modules/clipboard/**/*',
+    './node_modules/jquery/**/*',
+    './node_modules/moment/**/*',
+    './node_modules/semantic-ui-progress/**/*',
+    './node_modules/font-awesome/**/*',
+    './node_modules/kitsu/**/*'], {base: './'})
+        .pipe(gulp.dest('./src/'));
 });
 
 // html
@@ -90,30 +99,34 @@ gulp.task('js', () => {
         .pipe(gulp.dest('build'));
 });
 
+gulp.task('lint', () => {
+    return gulp.src(['src/*.js', 'src/pages/*.js', 'src/websites/*'])
+        .pipe(eslint())
+        .pipe(eslint.format('stylish', process.stdout))
+})
+
 // build and zip
 gulp.task('zip/crx/xpi', ['copy', 'html', 'css', 'js'], () => {
     var manifest = require('./src/manifest.json'),
-        filename = 'Kitsu Web Scrobbler v' + manifest.version + ' ' + moment().format('D-MMM-YYYY-HH-MM');
+        filename = 'Kitsu Web Scrobbler v' + manifest.version + ' ' + moment().format('D-MMM-YYYY-HH-mm-ss');
 
     gulp.src('build/**')
         .pipe(zip(filename + '.zip'))
         .pipe(gulp.dest('target'));
 
-    gulp.src('build/**')
+    /*gulp.src('build/**')
         .pipe(crx({
             filename: filename + '.crx',
-            privateKey: null /* set private key here or it will not build
-            "openssl genrsa -out private.pem 2048" should works
-            */
+            privateKey: null // set private key here or it will not build"openssl genrsa -out private.pem 2048" should works
         }))
-        .pipe(gulp.dest('target'));
+        .pipe(gulp.dest('target'));*/
 
     return gulp.src('build/**')
         .pipe(zip(filename + '.xpi'))
         .pipe(gulp.dest('target'));
 });
 
-gulp.task('default', ['clean'], () => {
+gulp.task('default', ['clean', 'lint'], () => {
     gulp.start('zip/crx/xpi');
     return true;
 });

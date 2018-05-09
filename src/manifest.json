@@ -3,8 +3,8 @@
     "name": "__MSG_appName__",
     "description": "__MSG_appDesc__",
     "author": "Kitsu.io",
-    "version": "0.0.8",
-    "version_name": "8th draft",
+    "version": "0.0.10",
+    "version_name": "10th draft",
     "permissions": [
         "*://www.crunchyroll.com/*",
         "*://www.wakanim.tv/*",
@@ -14,11 +14,17 @@
         "storage",
         "notifications"
     ],
+    "applications": {
+        "gecko": {
+          "id": "web-scrobbler@kitsu.io",
+          "strict_min_version": "42.0"
+        }
+    },
     "options_ui": {
         "page" : "pages/options.html"
     },
     "background": {
-        "scripts": ["node_modules/jquery/dist/jquery.min.js", "global.js", "runtime.js"]
+        "scripts": ["node_modules/jquery/dist/jquery.min.js", "kitsu.js", "global.js", "runtime.js"]
     },
     "content_security_policy": "script-src 'self' blob: filesystem: 'unsafe-eval'; object-src 'self' blob: filesystem:;",
     "default_locale": "en",
@@ -46,6 +52,10 @@
         {
             "matches": ["*://www.netflix.com/*"],
             "js": ["node_modules/jquery/dist/jquery.min.js", "global.js", "websites/netflix.js"]
+        },
+        {
+            "matches": ["*://www.hidive.com/*"],
+            "js": ["node_modules/jquery/dist/jquery.min.js", "global.js", "websites/hidive.js"]
         }
     ],
     "icons": {

@@ -2,17 +2,24 @@ module.exports = {
     "env": {
         "webextensions": true,
         "browser": true,
-        "es6": true
+        "es6": true,
+        "jquery": true
     },
     "globals": {
-        "$": true,
+        "Kitsu": true,
         "retrieveWindowVariables": false,
         "getCredentials": false,
         "doAPIRequest": false,
         "getAnimeProgress": false,
         "followPost": false,
+        "unfollowPost": false,
         "likePost": false,
         "unlikePost": false,
+        "likeComment": false,
+        "postComment": false,
+        "blockUser": false,
+        "unblockUser": false,
+        "unlikeComment": false,
         "postFeed": false,
         "scrobbleAnime": false,
         "getFeed": false,

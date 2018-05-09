@@ -48,6 +48,7 @@ chrome.runtime.sendMessage({action: 'getScrobbling'}, scrobbling => {
             },
             scrobbleNow: function(cevent) {
                 chrome.runtime.sendMessage({action: 'scrobbleNow'}, function(response) {
+                    if (!response) throw new Error('Runtime bad response');
                     $(cevent.target).remove();
                     this.scrobbling.notice = chrome.i18n.getMessage('scrobbled');
                 });
@@ -65,7 +66,7 @@ chrome.runtime.sendMessage({action: 'getScrobbling'}, scrobbling => {
             },
             pDefault: function(e) {
                 e.preventDefault();
-                console.warn('Report and Block events are not handled for now');
+                console.warn('Report events are not handled for now');
             },
             copyLink: function(e) {
                 e.preventDefault();
@@ -73,7 +74,15 @@ chrome.runtime.sendMessage({action: 'getScrobbling'}, scrobbling => {
             },
             followPost: function(e) {
                 e.preventDefault();
-                followPost($(e.target).attr('data-post-id'));
+                if ($(e.target).attr('data-followed')) {
+                    unfollowPost($(e.target).attr('data-post-id'));
+                    $(e.target).removeAttr('data-followed');
+                    $(e.target).text(chrome.i18n.getMessage('followPost'));
+                } else {
+                    followPost($(e.target).attr('data-post-id'));
+                    $(e.target).attr('data-followed', 'true');
+                    $(e.target).text(chrome.i18n.getMessage('unfollowPost'));
+                }
                 $(e.target).parent().parent().toggleClass('open');
             },
             likePost: function(e) {
@@ -89,6 +98,49 @@ chrome.runtime.sendMessage({action: 'getScrobbling'}, scrobbling => {
                     $(target).attr('data-post-liked', 'true');
                 }
                 $(target).toggleClass('is-liked');
+            },
+            likeComment: function(e) {
+                e.preventDefault();
+                var target = e.path.find(element => {
+                    return element.nodeName === 'A';
+                });
+                if ($(target).attr('data-comment-liked') === 'true') {
+                    unlikeComment($(target).attr('data-comment-id'));
+                    $(target).attr('data-comment-liked', 'false');
+                } else {
+                    likeComment($(target).attr('data-comment-id'));
+                    $(target).attr('data-comment-liked', 'true');
+                }
+                $(target).toggleClass('is-liked');
+            },
+            postComment: function(e) {
+                if (e.shiftKey) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                $(e.target).attr('disabled', 'dis');
+                postComment($(e.target).attr('data-post-id'), e.target.value).then(id => {
+                    console.log(id);
+                });
+                console.log(e);
+            },
+            blockUser: function(e) {
+                e.preventDefault();
+                /*if ($(e.target).attr('data-blocked')) {
+                    unblockUser($(e.target).attr('data-user-id'));
+                    $(e.target).removeAttr('data-blocked');
+                    $(e.target).text(chrome.i18n.getMessage('blockUser', [$(e.taget).attr('data-user-name')]));
+                } else {*/
+                blockUser($(e.target).attr('data-user-id'));
+                $(e.target).attr('data-blocked', 'true');
+                //$(e.target).text(chrome.i18n.getMessage('unblockUser', [$(e.taget).attr('data-user-name')]));
+                //}
+                $(e.target).parent().parent().toggleClass('open');
+            },
+            refreshFeed: function(e) {
+                e.preventDefault();
+                chrome.runtime.sendMessage({action: 'refreshFeed'});
             },
             openPopup: function(e) {
                 e.preventDefault();
@@ -107,7 +159,7 @@ chrome.runtime.sendMessage({action: 'getScrobbling'}, scrobbling => {
     });
 });
 
-var refreshInterval = setInterval(function() {
+setInterval(function() {
     chrome.runtime.sendMessage({action: 'getScrobbling'}, scrobbling => {
         vm.scrobbling = scrobbling;
         $('.progress').progress({
