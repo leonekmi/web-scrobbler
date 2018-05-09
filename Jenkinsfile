@@ -16,6 +16,7 @@ pipeline {
       steps {
         sh '''npm install
 ./node_modules/.bin/gulp'''
+        archiveArtifacts 'target/*'
       }
     }
   }
